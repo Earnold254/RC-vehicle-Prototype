@@ -1,0 +1,78 @@
+#include <Servo.h>
+
+#define IN1 2
+#define IN2 3
+#define ENA 5
+
+#define RED_LED 6
+#define YELLOW_LED 7
+#define GREEN_LED 8
+
+#define JOY_X A0
+#define JOY_Y A1
+
+Servo myServo;
+
+void setup() {
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(ENA, OUTPUT);
+
+  pinMode(RED_LED, OUTPUT);
+  pinMode(YELLOW_LED, OUTPUT);
+  pinMode(GREEN_LED, OUTPUT);
+
+  myServo.attach(9);
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  int xVal = analogRead(JOY_X); // left-right
+  int yVal = analogRead(JOY_Y); // forward-backward
+
+  // ---- Servo Control (Left/Right)
+  int angle = map(xVal, 0, 1023, 0, 180);
+  myServo.write(angle);
+
+  // ---- Motor Control (Forward/Backward)
+  int speed = 0;
+
+  if (yVal > 600) {
+    // Forward
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    speed = map(yVal, 600, 1023, 100, 255);
+  } 
+  else if (yVal < 400) {
+    // Backward
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    speed = map(yVal, 400, 0, 100, 255);
+  } 
+  else {
+    // Stop
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, LOW);
+    speed = 0;
+  }
+
+  analogWrite(ENA, speed);
+
+  // ---- LED Indicators
+  if (speed == 0) {
+    digitalWrite(RED_LED, HIGH);
+    digitalWrite(YELLOW_LED, LOW);
+    digitalWrite(GREEN_LED, LOW);
+  } else if (speed > 100 && speed < 200) {
+    digitalWrite(RED_LED, LOW);
+    digitalWrite(YELLOW_LED, HIGH);
+    digitalWrite(GREEN_LED, LOW);
+  } else if (speed >= 200) {
+    digitalWrite(RED_LED, LOW);
+    digitalWrite(YELLOW_LED, LOW);
+    digitalWrite(GREEN_LED, HIGH);
+  }
+
+  delay(100);
+}
